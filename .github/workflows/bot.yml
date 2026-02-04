@@ -55,6 +55,7 @@ jobs:
       # Determine which command to run based on trigger
       - name: Run scheduled price changes (2:30 AM)
         if: github.event_name == 'schedule' && github.event.schedule == '30 2 * * *'
+        continue-on-error: true
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
@@ -64,6 +65,7 @@ jobs:
 
       - name: Run scheduled deadline check (hourly)
         if: github.event_name == 'schedule' && github.event.schedule == '0 * * * *'
+        continue-on-error: true
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
@@ -73,6 +75,7 @@ jobs:
 
       - name: Run scheduled daily stats (8 AM)
         if: github.event_name == 'schedule' && github.event.schedule == '0 8 * * *'
+        continue-on-error: true
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}

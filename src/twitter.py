@@ -1,10 +1,14 @@
 """Twitter/X API client for posting tweets."""
 
 import os
+import time
 import tweepy
 from dotenv import load_dotenv
 
 load_dotenv()
+
+MAX_RETRIES = 3
+RETRY_DELAY = 5
 
 
 def get_client() -> tweepy.Client:
@@ -19,15 +23,26 @@ def get_client() -> tweepy.Client:
 
 
 def post_tweet(text: str, dry_run: bool = False) -> dict | None:
-    """Post a tweet. If dry_run is True, just print instead."""
+    """Post a tweet with retry logic. If dry_run is True, just print instead."""
     if dry_run:
         print(f"[DRY RUN] Would tweet:\n{text}\n{'='*50}")
         return None
 
     client = get_client()
-    response = client.create_tweet(text=text)
-    print(f"Tweet posted: {response.data['id']}")
-    return response.data
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = client.create_tweet(text=text)
+            print(f"Tweet posted: {response.data['id']}")
+            return response.data
+        except (tweepy.errors.Unauthorized, tweepy.errors.Forbidden) as e:
+            print(f"Attempt {attempt}/{MAX_RETRIES} failed: {e}")
+            if attempt < MAX_RETRIES:
+                print(f"Retrying in {RETRY_DELAY}s...")
+                time.sleep(RETRY_DELAY)
+            else:
+                print("All retries failed. Skipping tweet.")
+                return None
 
 
 def post_thread(tweets: list[str], dry_run: bool = False) -> list[dict]:
